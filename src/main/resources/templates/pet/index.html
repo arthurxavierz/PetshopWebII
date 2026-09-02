@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <title>Petshop</title>
+</head>
+<body>
+
+    <h1>Pets cadastrados</h1>
+
+    <table border="1">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Nome</th>
+                <th>Espécie</th>
+                <th>Raça</th>
+                <th>Idade</th>
+                <th>Tutor</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            <tr th:each="pet : ${pets}">
+                <td th:text="${pet.id}"></td>
+                <td th:text="${pet.nome}"></td>
+                <td th:text="${pet.especie}"></td>
+                <td th:text="${pet.raca}"></td>
+                <td th:text="${pet.idade}"></td>
+                <td th:text="${pet.tutor}"></td>
+            </tr>
+        </tbody>
+    </table>
+
+</body>
+</html>
