@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <title>Petshop</title>
@@ -7,6 +7,8 @@
 <body>
 
     <h1>Pets cadastrados</h1>
+
+    <a href="/pet/novo">Novo pet</a>
 
     <table border="1">
         <thead>
@@ -17,6 +19,7 @@
                 <th>Raça</th>
                 <th>Idade</th>
                 <th>Tutor</th>
+                <th>Ações</th>
             </tr>
         </thead>
 
@@ -28,6 +31,11 @@
                 <td th:text="${pet.raca}"></td>
                 <td th:text="${pet.idade}"></td>
                 <td th:text="${pet.tutor}"></td>
+                <td>
+                    <a th:href="@{/pet/editar/{id}(id=${pet.id})}">Editar</a>
+                    |
+                    <a th:href="@{/pet/excluir/{id}(id=${pet.id})}" onclick="return confirm('Deseja realmente excluir este pet?')">Excluir</a>
+                </td>
             </tr>
         </tbody>
     </table>
