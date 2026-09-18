@@ -3,6 +3,7 @@ package com.petshop.petshop.controller;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -10,6 +11,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 
 import com.petshop.petshop.model.Pet;
 import com.petshop.petshop.service.PetService;
+
+import jakarta.validation.Valid;
 
 @Controller
 public class PetController {
@@ -30,7 +33,13 @@ public class PetController {
     }
 
     @PostMapping("/pet/salvar")
-    public String salvar(@ModelAttribute Pet pet) {
+    public String salvar(@ModelAttribute @Valid Pet pet, BindingResult result, Model model) {
+
+        if (result.hasErrors()) {
+            model.addAttribute("pet", pet);
+            return "pet/form";
+        }
+
         petService.savePet(pet);
         return "redirect:/pet";
     }
@@ -48,7 +57,14 @@ public class PetController {
     }
 
     @PostMapping("/pet/atualizar/{id}")
-    public String atualizar(@PathVariable Long id, @ModelAttribute Pet pet) {
+    public String atualizar(@PathVariable Long id, @ModelAttribute @Valid Pet pet, BindingResult result, Model model) {
+
+        if (result.hasErrors()) {
+            pet.setId(id);
+            model.addAttribute("pet", pet);
+            return "pet/form";
+        }
+
         petService.updatePet(id, pet);
         return "redirect:/pet";
     }
