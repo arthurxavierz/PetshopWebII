@@ -1,42 +1,103 @@
 <!DOCTYPE html>
 <html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <title>Cadastro de Pet</title>
-</head>
-<body>
+  <th:block
+    th:replace="~{/../fragments/head :: head(${pet.id != null ? 'Editar Pet' : 'Cadastrar Pet'})}"
+  ></th:block>
+  <body>
+    <th:block th:replace="~{/../fragments/head :: header}"></th:block>
+    <div class="container">
+      <h1 th:text="${pet.id != null ? 'Editar pet' : 'Cadastrar pet'}">Cadastrar pet</h1>
 
-    <h1 th:text="${pet.id != null ? 'Editar pet' : 'Cadastrar pet'}">Cadastrar pet</h1>
+      <form
+        action="#"
+        th:action="${pet.id != null ? '/pet/atualizar/' + pet.id : '/pet/salvar'}"
+        th:object="${pet}"
+        method="POST"
+      >
+        <!-- Campo necessário para que o form saiba que não estamos criando, mas editando um pet -->
+        <input type="hidden" th:if="${pet.id != null}" th:field="*{id}" />
 
-    <form th:action="${pet.id != null ? '/pet/atualizar/' + pet.id : '/pet/salvar'}" method="post" th:object="${pet}">
-        <div>
-            <label for="nome">Nome:</label>
-            <input type="text" id="nome" th:field="*{nome}">
+        <div class="form-group row">
+          <label for="nome" class="col-sm-2 col-form-label">Nome:</label>
+          <div class="col-sm-10">
+            <input
+              type="text"
+              th:field="*{nome}"
+              class="form-control"
+              id="nome"
+              name="nome"
+              placeholder="Digite o nome do pet"
+            />
+            <p th:if="${#fields.hasErrors('nome')}" th:errorclass="text-danger" th:errors="*{nome}" />
+          </div>
         </div>
 
-        <div>
-            <label for="especie">Espécie:</label>
-            <input type="text" id="especie" th:field="*{especie}">
+        <div class="form-group row">
+          <label for="especie" class="col-sm-2 col-form-label">Espécie:</label>
+          <div class="col-sm-10">
+            <input
+              type="text"
+              th:field="*{especie}"
+              class="form-control"
+              id="especie"
+              name="especie"
+              placeholder="Digite a espécie do pet"
+            />
+            <p th:if="${#fields.hasErrors('especie')}" th:errorclass="text-danger" th:errors="*{especie}" />
+          </div>
         </div>
 
-        <div>
-            <label for="raca">Raça:</label>
-            <input type="text" id="raca" th:field="*{raca}">
+        <div class="form-group row">
+          <label for="raca" class="col-sm-2 col-form-label">Raça:</label>
+          <div class="col-sm-10">
+            <input
+              type="text"
+              th:field="*{raca}"
+              class="form-control"
+              id="raca"
+              name="raca"
+              placeholder="Digite a raça do pet"
+            />
+            <p th:if="${#fields.hasErrors('raca')}" th:errorclass="text-danger" th:errors="*{raca}" />
+          </div>
         </div>
 
-        <div>
-            <label for="idade">Idade:</label>
-            <input type="number" id="idade" th:field="*{idade}">
+        <div class="form-group row">
+          <label for="idade" class="col-sm-2 col-form-label">Idade:</label>
+          <div class="col-sm-10">
+            <input
+              type="number"
+              th:field="*{idade}"
+              class="form-control"
+              id="idade"
+              name="idade"
+              placeholder="Digite a idade do pet"
+            />
+            <p th:if="${#fields.hasErrors('idade')}" th:errorclass="text-danger" th:errors="*{idade}" />
+          </div>
         </div>
 
-        <div>
-            <label for="tutor">Tutor:</label>
-            <input type="text" id="tutor" th:field="*{tutor}">
+        <div class="form-group row">
+          <label for="tutor" class="col-sm-2 col-form-label">Tutor:</label>
+          <div class="col-sm-10">
+            <input
+              type="text"
+              th:field="*{tutor}"
+              class="form-control"
+              id="tutor"
+              name="tutor"
+              placeholder="Digite o nome do tutor"
+            />
+            <p th:if="${#fields.hasErrors('tutor')}" th:errorclass="text-danger" th:errors="*{tutor}" />
+          </div>
         </div>
 
-        <button type="submit">Salvar</button>
-        <a href="/pet">Cancelar</a>
-    </form>
-
-</body>
+        <button type="submit" class="btn btn-primary" th:text="${pet.id != null ? 'Atualizar Pet' : 'Cadastrar Pet'}">
+          Salvar
+        </button>
+        <a th:href="@{/pet}" class="btn btn-secondary">Cancelar</a>
+      </form>
+    </div>
+    <th:block th:replace="~{/../fragments/footer :: footer}"></th:block>
+  </body>
 </html>

@@ -1,44 +1,50 @@
 <!DOCTYPE html>
 <html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-    <title>Petshop</title>
-</head>
-<body>
-
-    <h1>Pets cadastrados</h1>
-
-    <a href="/pet/novo">Novo pet</a>
-
-    <table border="1">
+  <th:block th:replace="~{/../fragments/head :: head('Listar Pets')}"></th:block>
+  <body>
+    <th:block th:replace="~{/../fragments/head :: header}"></th:block>
+    <div class="container">
+      <h1>Pets cadastrados</h1>
+      <table class="table table-striped">
         <thead>
-            <tr>
-                <th>ID</th>
-                <th>Nome</th>
-                <th>Espécie</th>
-                <th>Raça</th>
-                <th>Idade</th>
-                <th>Tutor</th>
-                <th>Ações</th>
-            </tr>
+          <tr>
+            <th scope="col">ID</th>
+            <th scope="col">Nome</th>
+            <th scope="col">Espécie</th>
+            <th scope="col">Raça</th>
+            <th scope="col">Idade</th>
+            <th scope="col">Tutor</th>
+            <th scope="col">Editar</th>
+            <th scope="col">Excluir</th>
+          </tr>
         </thead>
-
         <tbody>
-            <tr th:each="pet : ${pets}">
-                <td th:text="${pet.id}"></td>
-                <td th:text="${pet.nome}"></td>
-                <td th:text="${pet.especie}"></td>
-                <td th:text="${pet.raca}"></td>
-                <td th:text="${pet.idade}"></td>
-                <td th:text="${pet.tutor}"></td>
-                <td>
-                    <a th:href="@{/pet/editar/{id}(id=${pet.id})}">Editar</a>
-                    |
-                    <a th:href="@{/pet/excluir/{id}(id=${pet.id})}" onclick="return confirm('Deseja realmente excluir este pet?')">Excluir</a>
-                </td>
-            </tr>
+          <tr th:each="pet : ${pets}">
+            <td scope="row" th:text="${pet.id}"></td>
+            <td scope="row" th:text="${pet.nome}"></td>
+            <td scope="row" th:text="${pet.especie}"></td>
+            <td scope="row" th:text="${pet.raca}"></td>
+            <td scope="row" th:text="${pet.idade}"></td>
+            <td scope="row" th:text="${pet.tutor}"></td>
+            <td>
+              <a th:href="@{/pet/editar/{id}(id=${pet.id})}">Editar</a>
+            </td>
+            <td>
+              <a
+                th:href="@{/pet/excluir/{id}(id=${pet.id})}"
+                onclick="return confirm('Deseja realmente excluir este pet?')"
+                >Excluir</a
+              >
+            </td>
+          </tr>
         </tbody>
-    </table>
-
-</body>
+      </table>
+      <div class="row">
+        <a th:href="@{/pet/novo}">
+          <button class="btn btn-primary">Cadastrar Pet</button>
+        </a>
+      </div>
+    </div>
+    <th:block th:replace="~{/../fragments/footer :: footer}"></th:block>
+  </body>
 </html>
