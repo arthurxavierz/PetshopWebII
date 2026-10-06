@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+  <th:block th:replace="~{/../fragments/head :: head('Cadastrar Usuário')}"></th:block>
+  <body>
+    <th:block th:replace="~{/../fragments/head :: header}"></th:block>
+    <div class="container mt-4">
+      <h1>Cadastrar usuário</h1>
+
+      <div th:if="${msg}" class="alert alert-success" th:text="${msg}"></div>
+
+      <form th:action="@{/saveUser}" method="post">
+        <div class="form-group row">
+          <label for="name" class="col-sm-2 col-form-label">Nome:</label>
+          <div class="col-sm-10">
+            <input type="text" class="form-control" id="name" name="name" placeholder="Digite o nome" required />
+          </div>
+        </div>
+
+        <div class="form-group row">
+          <label for="email" class="col-sm-2 col-form-label">Email:</label>
+          <div class="col-sm-10">
+            <input type="email" class="form-control" id="email" name="email" placeholder="Digite o email" required />
+          </div>
+        </div>
+
+        <div class="form-group row">
+          <label for="password" class="col-sm-2 col-form-label">Senha:</label>
+          <div class="col-sm-10">
+            <input type="password" class="form-control" id="password" name="password" placeholder="Digite a senha" required />
+          </div>
+        </div>
+
+        <div class="form-group row">
+          <label class="col-sm-2 col-form-label">Perfil(s):</label>
+          <div class="col-sm-10 pt-2">
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="checkbox" id="roleAdmin" name="roles" value="Admin" />
+              <label class="form-check-label" for="roleAdmin">Admin</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="checkbox" id="roleVeterinario" name="roles" value="Veterinario" />
+              <label class="form-check-label" for="roleVeterinario">Veterinário</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="checkbox" id="roleAtendente" name="roles" value="Atendente" />
+              <label class="form-check-label" for="roleAtendente">Atendente</label>
+            </div>
+            <div class="form-check form-check-inline">
+              <input class="form-check-input" type="checkbox" id="roleTosador" name="roles" value="Tosador" />
+              <label class="form-check-label" for="roleTosador">Tosador</label>
+            </div>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary">Cadastrar</button>
+        <a th:href="@{/login}" class="btn btn-secondary">Ir para o login</a>
+      </form>
+    </div>
+    <th:block th:replace="~{/../fragments/footer :: footer}"></th:block>
+  </body>
+</html>

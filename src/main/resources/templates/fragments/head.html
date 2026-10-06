@@ -60,10 +60,15 @@
           </a>
           <div class="dropdown-menu" aria-labelledby="navbarDropdown">
             <a class="dropdown-item" th:href="@{/pet}">Listar</a>
-            <a class="dropdown-item" th:href="@{/pet/novo}">Cadastrar</a>
+            <a sec:authorize="hasAuthority('Admin')" class="dropdown-item" th:href="@{/pet/novo}">Cadastrar</a>
           </div>
         </li>
       </ul>
+      <span sec:authorize="isAuthenticated()" class="navbar-text mr-3" sec:authentication="name"></span>
+      <form sec:authorize="isAuthenticated()" class="form-inline my-2 my-lg-0" th:action="@{/logout}" method="post">
+        <button type="submit" class="btn btn-outline-light my-2 my-sm-0">Sair</button>
+      </form>
+      <a sec:authorize="!isAuthenticated()" class="btn btn-outline-light" th:href="@{/login}">Entrar</a>
     </div>
   </div>
 </nav>

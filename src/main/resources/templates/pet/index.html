@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
   <th:block th:replace="~{/../fragments/head :: head('Listar Pets')}"></th:block>
   <body>
     <th:block th:replace="~{/../fragments/head :: header}"></th:block>
@@ -14,8 +14,8 @@
             <th scope="col">Raça</th>
             <th scope="col">Idade</th>
             <th scope="col">Tutor</th>
-            <th scope="col">Editar</th>
-            <th scope="col">Excluir</th>
+            <th sec:authorize="hasAuthority('Admin')" scope="col">Editar</th>
+            <th sec:authorize="hasAuthority('Admin')" scope="col">Excluir</th>
           </tr>
         </thead>
         <tbody>
@@ -26,10 +26,10 @@
             <td scope="row" th:text="${pet.raca}"></td>
             <td scope="row" th:text="${pet.idade}"></td>
             <td scope="row" th:text="${pet.tutor}"></td>
-            <td>
+            <td sec:authorize="hasAuthority('Admin')">
               <a th:href="@{/pet/editar/{id}(id=${pet.id})}">Editar</a>
             </td>
-            <td>
+            <td sec:authorize="hasAuthority('Admin')">
               <a
                 th:href="@{/pet/excluir/{id}(id=${pet.id})}"
                 onclick="return confirm('Deseja realmente excluir este pet?')"
@@ -39,7 +39,7 @@
           </tr>
         </tbody>
       </table>
-      <div class="row">
+      <div sec:authorize="hasAuthority('Admin')" class="row">
         <a th:href="@{/pet/novo}">
           <button class="btn btn-primary">Cadastrar Pet</button>
         </a>
