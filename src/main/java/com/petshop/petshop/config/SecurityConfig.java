@@ -39,7 +39,7 @@ public class SecurityConfig {
 
     @Bean
     public AuthenticationProvider authenticationProvider(UserDetailsService uds, BCryptPasswordEncoder encoder) {
-        // No Spring Security 7 o UserDetailsService é passado no construtor
+        // UserDetailsService passado no construtor (setUserDetailsService está deprecated)
         DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider(uds);
         authenticationProvider.setPasswordEncoder(encoder);
         return authenticationProvider;
