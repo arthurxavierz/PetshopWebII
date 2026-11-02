@@ -83,13 +83,10 @@ public class SolicitacaoAdocaoIntegrationTest {
     }
 
     @Test
-    void testAtendenteNaoAprovaEUsuarioPadraoTambemNao() throws Exception {
+    void testUsuarioPadraoNaoAprova() throws Exception {
         Pet rex = criarPet("Rex");
         enviarSolicitacao("usuario@petshop.com", rex);
         Long id = solicitacaoRepository.findAll().get(0).getId();
-
-        mockMvc.perform(get("/adocao/aprovar/" + id).with(user("atendente@petshop.com").authorities(new SimpleGrantedAuthority("Atendente"))))
-                .andExpect(status().isForbidden());
         mockMvc.perform(get("/adocao/aprovar/" + id).with(user("usuario@petshop.com").authorities(new SimpleGrantedAuthority("Usuario"))))
                 .andExpect(status().isForbidden());
 
@@ -135,12 +132,6 @@ public class SolicitacaoAdocaoIntegrationTest {
                 .andExpect(status().isOk())
                 .andExpect(content().string(containsString("Carla Mendes")))
                 .andExpect(content().string(containsString("Aprovar")));
-
-        // Atendente vê a solicitação, mas sem o botão Aprovar
-        mockMvc.perform(get("/adocao").with(user("atendente@petshop.com").authorities(new SimpleGrantedAuthority("Atendente"))))
-                .andExpect(status().isOk())
-                .andExpect(content().string(containsString("Carla Mendes")))
-                .andExpect(content().string(not(containsString(">Aprovar<"))));
 
         // Usuário padrão vê "Minhas solicitações"
         mockMvc.perform(get("/adocao").with(user("usuario@petshop.com").authorities(new SimpleGrantedAuthority("Usuario"))))

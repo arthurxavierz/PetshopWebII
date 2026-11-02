@@ -92,7 +92,7 @@ public class PetControllerTest {
     }
 
     @Test
-    @WithMockUser(username = "atendente@petshop.com", authorities = { "Atendente" })
+    @WithMockUser(username = "usuario@petshop.com", authorities = { "Usuario" })
     @DisplayName("GET /pet - Verificar que o botão de cadastrar não aparece para usuário não admin")
     void testCreateFormNotAuthorizedUser() throws Exception {
         when(petService.getAllPets()).thenReturn(testCreatePetList());

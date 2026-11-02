@@ -28,13 +28,13 @@ public class SolicitacaoAdocaoController {
     @Autowired
     private SolicitacaoAdocaoService solicitacaoService;
 
-    // Admin e Atendente veem todas; o usuário padrão vê só as dele ("Minhas solicitações")
+    // O Admin vê todas; o usuário padrão vê só as dele ("Minhas solicitações")
     @GetMapping
     public String index(Model model, Authentication authentication) {
-        boolean veTodas = authentication.getAuthorities().stream()
-                .anyMatch(a -> a.getAuthority().equals("Admin") || a.getAuthority().equals("Atendente"));
+        boolean isAdmin = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("Admin"));
 
-        if (veTodas) {
+        if (isAdmin) {
             model.addAttribute("solicitacoes", solicitacaoService.getAllSolicitacoes());
         } else {
             model.addAttribute("solicitacoes", solicitacaoService.getSolicitacoesDoUsuario(authentication.getName()));

@@ -25,7 +25,7 @@ public class SecurityConfig {
                 // Apenas Admin pode cadastrar, editar e excluir pets (listar fica liberado para qualquer usuário logado)
                 .requestMatchers("/pet/novo", "/pet/salvar", "/pet/editar/**", "/pet/atualizar/**", "/pet/excluir/**")
                 .hasAuthority("Admin")
-                // Adoção: o usuário padrão envia, o Admin aprova; Admin e Atendente visualizam a lista
+                // Adoção: o usuário padrão envia e o Admin aprova
                 .requestMatchers("/adocao/nova", "/adocao/salvar").hasAuthority("Usuario")
                 .requestMatchers("/adocao/aprovar/**").hasAuthority("Admin")
                 .anyRequest().authenticated())
