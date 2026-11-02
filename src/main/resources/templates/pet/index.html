@@ -5,6 +5,9 @@
     <th:block th:replace="~{/../fragments/head :: header}"></th:block>
     <div class="container">
       <h1>Pets cadastrados</h1>
+      <div th:if="${param.erroExclusao}" class="alert alert-warning">
+        Este pet está em uma solicitação de adoção e não pode ser excluído.
+      </div>
       <table class="table table-striped">
         <thead>
           <tr>

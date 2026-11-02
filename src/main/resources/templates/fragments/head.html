@@ -63,6 +63,23 @@
             <a sec:authorize="hasAuthority('Admin')" class="dropdown-item" th:href="@{/pet/novo}">Cadastrar</a>
           </div>
         </li>
+        <li sec:authorize="isAuthenticated()" class="nav-item dropdown active">
+          <a
+            class="nav-link dropdown-toggle"
+            th:href="@{/adocao}"
+            id="navbarDropdownAdocao"
+            role="button"
+            data-toggle="dropdown"
+            aria-haspopup="true"
+            aria-expanded="false"
+          >
+            Adoções
+          </a>
+          <div class="dropdown-menu" aria-labelledby="navbarDropdownAdocao">
+            <a class="dropdown-item" th:href="@{/adocao}">Listar</a>
+            <a class="dropdown-item" th:href="@{/adocao/nova}">Nova solicitação</a>
+          </div>
+        </li>
       </ul>
       <span sec:authorize="isAuthenticated()" class="navbar-text mr-3" sec:authentication="name"></span>
       <form sec:authorize="isAuthenticated()" class="form-inline my-2 my-lg-0" th:action="@{/logout}" method="post">

@@ -4,6 +4,7 @@ import java.net.URI;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -96,6 +97,7 @@ public class PetRestController {
     /**
      * Resposta: 204 No Content se a exclusão for bem-sucedida.
      * 404 Not Found se o pet não existir.
+     * 409 Conflict se o pet estiver em uma solicitação de adoção.
      */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deletePet(@PathVariable Long id) {
@@ -103,7 +105,12 @@ public class PetRestController {
             return ResponseEntity.notFound().build();
         }
 
-        petService.deletePet(id);
+        try {
+            petService.deletePet(id);
+        } catch (IllegalStateException e) {
+            // 409 Conflict: o pet está em uma solicitação de adoção
+            return ResponseEntity.status(HttpStatus.CONFLICT).build();
+        }
 
         // Retorna 204 No Content (sucesso, sem corpo de resposta)
         return ResponseEntity.noContent().build();

@@ -71,7 +71,12 @@ public class PetController {
 
     @GetMapping("/pet/excluir/{id}")
     public String excluir(@PathVariable Long id) {
-        petService.deletePet(id);
+        try {
+            petService.deletePet(id);
+        } catch (IllegalStateException e) {
+            // Pet em solicitação de adoção: volta para a lista com aviso
+            return "redirect:/pet?erroExclusao";
+        }
         return "redirect:/pet";
     }
 }

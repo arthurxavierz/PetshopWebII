@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/thymeleaf-extras-springsecurity6">
+  <th:block th:replace="~{/../fragments/head :: head('Solicitações de Adoção')}"></th:block>
+  <body>
+    <th:block th:replace="~{/../fragments/head :: header}"></th:block>
+    <div class="container mt-4">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h1>Solicitações de adoção</h1>
+        <a th:href="@{/adocao/nova}" class="btn btn-primary">Nova solicitação</a>
+      </div>
+
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Data</th>
+            <th>Adotante</th>
+            <th>Telefone</th>
+            <th>Pets</th>
+            <th>Taxa total</th>
+            <th>Editar</th>
+            <th sec:authorize="hasAuthority('Admin')">Excluir</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr th:if="${solicitacoes.isEmpty()}">
+            <td colspan="8" class="text-center">Nenhuma solicitação de adoção cadastrada.</td>
+          </tr>
+          <tr th:each="s : ${solicitacoes}">
+            <td th:text="${s.id}"></td>
+            <td th:text="${#temporals.format(s.dataSolicitacao, 'dd/MM/yyyy HH:mm')}"></td>
+            <td th:text="${s.nomeAdotante}"></td>
+            <td th:text="${s.telefoneAdotante}"></td>
+            <td th:text="${#strings.listJoin(s.itens.![pet.nome], ', ')}"></td>
+            <td th:text="${'R$ ' + #numbers.formatDecimal(s.taxaTotal, 1, 'POINT', 2, 'COMMA')}"></td>
+            <td>
+              <a th:href="@{/adocao/editar/{id}(id=${s.id})}" class="btn btn-primary btn-sm">Editar</a>
+            </td>
+            <td sec:authorize="hasAuthority('Admin')">
+              <a
+                th:href="@{/adocao/excluir/{id}(id=${s.id})}"
+                class="btn btn-danger btn-sm"
+                onclick="return confirm('Deseja realmente excluir esta solicitação de adoção?');"
+                >Excluir</a
+              >
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <th:block th:replace="~{/../fragments/footer :: footer}"></th:block>
+  </body>
+</html>

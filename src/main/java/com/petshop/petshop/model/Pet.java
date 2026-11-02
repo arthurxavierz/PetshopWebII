@@ -9,6 +9,10 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
+import lombok.Data;
+
+// @Data (Lombok) gera os getters, setters, toString, equals e hashCode
+@Data
 @Entity
 public class Pet {
 
@@ -32,52 +36,4 @@ public class Pet {
     @NotBlank(message = "Tutor é um campo obrigatório")
     @Size(min = 3, max = 80, message = "Nome do tutor deve conter pelo menos 3 caracteres")
     private String tutor;
-
-    public Long getId() {
-        return id;
-    }
-
-    public String getNome() {
-        return nome;
-    }
-
-    public String getEspecie() {
-        return especie;
-    }
-
-    public String getRaca() {
-        return raca;
-    }
-
-    public Integer getIdade() {
-        return idade;
-    }
-
-    public String getTutor() {
-        return tutor;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public void setNome(String nome) {
-        this.nome = nome;
-    }
-
-    public void setEspecie(String especie) {
-        this.especie = especie;
-    }
-
-    public void setRaca(String raca) {
-        this.raca = raca;
-    }
-
-    public void setIdade(Integer idade) {
-        this.idade = idade;
-    }
-
-    public void setTutor(String tutor) {
-        this.tutor = tutor;
-    }
 }

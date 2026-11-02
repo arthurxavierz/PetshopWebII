@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+  <th:block th:replace="~{/../fragments/head :: head('Solicitação de Adoção')}"></th:block>
+  <body>
+    <th:block th:replace="~{/../fragments/head :: header}"></th:block>
+
+    <div class="container mt-4 mb-5">
+      <h2 th:text="${solicitacao.id == null ? 'Nova solicitação de adoção' : 'Editar solicitação #' + solicitacao.id}">
+        Nova solicitação de adoção
+      </h2>
+
+      <form th:action="@{/adocao/salvar}" th:object="${solicitacao}" method="post">
+        <!-- Mensagens das regras de negócio (ex.: pet já está em outra solicitação) -->
+        <div th:if="${#fields.hasGlobalErrors()}" class="alert alert-danger">
+          <p th:each="erro : ${#fields.globalErrors()}" th:text="${erro}" class="mb-0"></p>
+        </div>
+
+        <input type="hidden" th:field="*{id}" />
+
+        <div class="form-row">
+          <div class="form-group col-md-5">
+            <label for="nomeAdotante">Nome do adotante</label>
+            <input type="text" class="form-control" th:field="*{nomeAdotante}" id="nomeAdotante" placeholder="Quem vai adotar" />
+          </div>
+          <div class="form-group col-md-3">
+            <label for="telefoneAdotante">Telefone</label>
+            <input type="text" class="form-control" th:field="*{telefoneAdotante}" id="telefoneAdotante" placeholder="(34) 99999-9999" />
+          </div>
+          <div class="form-group col-md-4">
+            <label for="dataSolicitacao">Data da solicitação</label>
+            <input type="datetime-local" class="form-control" th:field="*{dataSolicitacao}" id="dataSolicitacao" />
+          </div>
+        </div>
+
+        <hr />
+
+        <h5>Pets da solicitação</h5>
+        <div id="itens-container">
+          <!-- Itens já existentes (ao editar ou ao voltar com erro) -->
+          <div th:each="item, iter : *{itens}" class="form-row item-row">
+            <input type="hidden" th:field="*{itens[__${iter.index}__].id}" class="item-id" />
+            <div class="form-group col-md-7">
+              <label>Pet</label>
+              <select class="form-control item-pet" th:field="*{itens[__${iter.index}__].pet.id}">
+                <option value="">Selecione o pet</option>
+                <option th:each="p : ${pets}" th:value="${p.id}" th:text="${p.nome + ' (' + p.especie + ')'}"></option>
+              </select>
+            </div>
+            <div class="form-group col-md-4">
+              <label>Taxa de adoção (R$)</label>
+              <input type="number" step="0.01" min="0" class="form-control item-taxa" th:field="*{itens[__${iter.index}__].taxaAdocao}" />
+            </div>
+            <div class="form-group col-md-1 d-flex align-items-end">
+              <button type="button" class="btn btn-danger remove-item">X</button>
+            </div>
+          </div>
+        </div>
+
+        <button type="button" id="add-item" class="btn btn-secondary">Adicionar pet</button>
+
+        <hr />
+
+        <button type="submit" class="btn btn-primary">Salvar</button>
+        <a th:href="@{/adocao}" class="btn btn-secondary">Cancelar</a>
+
+        <!-- Modelo de linha vazia, copiado pelo JavaScript ao clicar em "Adicionar pet" -->
+        <div id="item-template" style="display: none">
+          <div class="form-row item-row">
+            <div class="form-group col-md-7">
+              <label>Pet</label>
+              <select class="form-control item-pet">
+                <option value="">Selecione o pet</option>
+                <option th:each="p : ${pets}" th:value="${p.id}" th:text="${p.nome + ' (' + p.especie + ')'}"></option>
+              </select>
+            </div>
+            <div class="form-group col-md-4">
+              <label>Taxa de adoção (R$)</label>
+              <input type="number" step="0.01" min="0" class="form-control item-taxa" value="0" />
+            </div>
+            <div class="form-group col-md-1 d-flex align-items-end">
+              <button type="button" class="btn btn-danger remove-item">X</button>
+            </div>
+          </div>
+        </div>
+      </form>
+    </div>
+
+    <th:block th:replace="~{/../fragments/footer :: footer}"></th:block>
+
+    <script>
+      document.addEventListener("DOMContentLoaded", function () {
+        const container = document.getElementById("itens-container");
+        const templateHtml = document.getElementById("item-template").innerHTML;
+
+        // Os campos precisam se chamar itens[0].pet.id, itens[1].pet.id... para o Spring montar a lista
+        function reindexar() {
+          container.querySelectorAll(".item-row").forEach((row, i) => {
+            const id = row.querySelector(".item-id");
+            if (id) id.name = `itens[${i}].id`;
+            row.querySelector(".item-pet").name = `itens[${i}].pet.id`;
+            row.querySelector(".item-taxa").name = `itens[${i}].taxaAdocao`;
+          });
+        }
+
+        document.getElementById("add-item").addEventListener("click", function () {
+          const wrapper = document.createElement("div");
+          wrapper.innerHTML = templateHtml;
+          container.appendChild(wrapper.firstElementChild);
+          reindexar();
+        });
+
+        container.addEventListener("click", function (e) {
+          if (e.target.classList.contains("remove-item")) {
+            e.target.closest(".item-row").remove();
+            reindexar();
+          }
+        });
+      });
+    </script>
+  </body>
+</html>

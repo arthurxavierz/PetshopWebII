@@ -25,6 +25,8 @@ public class SecurityConfig {
                 // Apenas Admin pode cadastrar, editar e excluir pets (listar fica liberado para qualquer usuário logado)
                 .requestMatchers("/pet/novo", "/pet/salvar", "/pet/editar/**", "/pet/atualizar/**", "/pet/excluir/**")
                 .hasAuthority("Admin")
+                // Qualquer usuário logado registra solicitações de adoção, mas só o Admin exclui
+                .requestMatchers("/adocao/excluir/**").hasAuthority("Admin")
                 .anyRequest().authenticated())
                 .formLogin(login -> login
                         .loginPage("/login") // tela de login própria, em português
