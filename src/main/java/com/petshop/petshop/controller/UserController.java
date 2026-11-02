@@ -31,6 +31,12 @@ public class UserController {
         return "user/registerUser";
     }
 
+    // Abre a tela de login (o POST /login continua sendo tratado pelo Spring Security)
+    @GetMapping("/login")
+    public String login() {
+        return "user/login";
+    }
+
     @GetMapping("/accessDenied")
     public String getAccessDeniedPage() {
         return "user/accessDeniedPage";

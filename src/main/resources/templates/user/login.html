@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="pt-br" xmlns:th="http://www.thymeleaf.org">
+  <th:block th:replace="~{/../fragments/head :: head('Entrar')}"></th:block>
+  <body>
+    <th:block th:replace="~{/../fragments/head :: header}"></th:block>
+    <div class="container mt-5" style="max-width: 420px">
+      <h1 class="mb-4">Entrar</h1>
+
+      <div th:if="${param.error}" class="alert alert-danger">Email ou senha inválidos.</div>
+      <div th:if="${param.logout}" class="alert alert-success">Você saiu do sistema.</div>
+
+      <form th:action="@{/login}" method="post">
+        <div class="form-group">
+          <label for="username">Email</label>
+          <input type="email" class="form-control" id="username" name="username" placeholder="Digite seu email" required autofocus />
+        </div>
+        <div class="form-group">
+          <label for="password">Senha</label>
+          <input type="password" class="form-control" id="password" name="password" placeholder="Digite sua senha" required />
+        </div>
+        <button type="submit" class="btn btn-primary btn-block">Entrar</button>
+      </form>
+
+      <p class="mt-3 text-center">
+        Não tem conta? <a th:href="@{/register}">Cadastre-se</a>
+      </p>
+    </div>
+    <th:block th:replace="~{/../fragments/footer :: footer}"></th:block>
+  </body>
+</html>

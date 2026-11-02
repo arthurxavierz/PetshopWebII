@@ -27,7 +27,9 @@ public class SecurityConfig {
                 .hasAuthority("Admin")
                 .anyRequest().authenticated())
                 .formLogin(login -> login
-                        .defaultSuccessUrl("/", true))
+                        .loginPage("/login") // tela de login própria, em português
+                        .defaultSuccessUrl("/", true)
+                        .permitAll())
                 .logout(logout -> logout
                         .logoutUrl("/logout"))
                 .exceptionHandling(handling -> handling
