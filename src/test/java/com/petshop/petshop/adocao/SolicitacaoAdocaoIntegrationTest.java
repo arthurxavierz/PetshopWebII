@@ -1,10 +1,12 @@
 package com.petshop.petshop.adocao;
 
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.not;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.csrf;
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.hamcrest.Matchers.containsString;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.model;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.redirectedUrl;
@@ -15,12 +17,13 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.web.servlet.MockMvc;
 
 import com.petshop.petshop.model.Pet;
 import com.petshop.petshop.model.SolicitacaoAdocao;
+import com.petshop.petshop.model.StatusSolicitacao;
 import com.petshop.petshop.repository.PetRepository;
 import com.petshop.petshop.repository.SolicitacaoAdocaoRepository;
 
@@ -51,48 +54,62 @@ public class SolicitacaoAdocaoIntegrationTest {
         return petRepository.save(pet);
     }
 
-    @Test
-    @WithMockUser(authorities = { "Atendente" })
-    void testSalvarSolicitacaoComDoisPets() throws Exception {
-        Pet rex = criarPet("Rex");
-        Pet mel = criarPet("Mel");
-
+    private void enviarSolicitacao(String email, Pet pet) throws Exception {
         mockMvc.perform(post("/adocao/salvar")
+                .with(user(email).authorities(new SimpleGrantedAuthority("Usuario")))
                 .with(csrf())
+                .param("pet.id", pet.getId().toString())
                 .param("nomeAdotante", "Carla Mendes")
-                .param("telefoneAdotante", "(34) 99999-0000")
-                .param("itens[0].pet.id", rex.getId().toString())
-                .param("itens[0].taxaAdocao", "50.00")
-                .param("itens[1].pet.id", mel.getId().toString())
-                .param("itens[1].taxaAdocao", "30.00"))
+                .param("telefone", "(34) 99999-0000"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/adocao"));
-
-        // Verifica no banco: uma solicitação com 2 pets e taxa total somada
-        assertEquals(1, solicitacaoRepository.count());
-        SolicitacaoAdocao salva = solicitacaoRepository.findAll().get(0);
-        assertEquals(2, salva.getItens().size());
-        assertEquals(80.0f, salva.getTaxaTotal(), 0.001);
     }
 
     @Test
-    @WithMockUser(authorities = { "Atendente" })
-    void testNaoPermitePetEmDuasSolicitacoes() throws Exception {
+    void testUsuarioEnviaEAdminAprova() throws Exception {
         Pet rex = criarPet("Rex");
 
-        mockMvc.perform(post("/adocao/salvar")
-                .with(csrf())
-                .param("nomeAdotante", "Carla Mendes")
-                .param("itens[0].pet.id", rex.getId().toString())
-                .param("itens[0].taxaAdocao", "50.00"))
-                .andExpect(status().is3xxRedirection());
+        // Usuário padrão envia a solicitação: fica PENDENTE e guarda o email de quem enviou
+        enviarSolicitacao("usuario@petshop.com", rex);
+        SolicitacaoAdocao salva = solicitacaoRepository.findAll().get(0);
+        assertEquals(StatusSolicitacao.PENDENTE, salva.getStatus());
+        assertEquals("usuario@petshop.com", salva.getEmailUsuario());
 
-        // Segunda solicitação com o mesmo pet: volta para o formulário com erro
+        // Admin aprova
+        mockMvc.perform(get("/adocao/aprovar/" + salva.getId())
+                .with(user("admin@petshop.com").authorities(new SimpleGrantedAuthority("Admin"))))
+                .andExpect(status().is3xxRedirection());
+        assertEquals(StatusSolicitacao.APROVADA, solicitacaoRepository.findById(salva.getId()).get().getStatus());
+    }
+
+    @Test
+    void testAtendenteNaoAprovaEUsuarioPadraoTambemNao() throws Exception {
+        Pet rex = criarPet("Rex");
+        enviarSolicitacao("usuario@petshop.com", rex);
+        Long id = solicitacaoRepository.findAll().get(0).getId();
+
+        mockMvc.perform(get("/adocao/aprovar/" + id).with(user("atendente@petshop.com").authorities(new SimpleGrantedAuthority("Atendente"))))
+                .andExpect(status().isForbidden());
+        mockMvc.perform(get("/adocao/aprovar/" + id).with(user("usuario@petshop.com").authorities(new SimpleGrantedAuthority("Usuario"))))
+                .andExpect(status().isForbidden());
+
+        assertEquals(StatusSolicitacao.PENDENTE, solicitacaoRepository.findById(id).get().getStatus());
+    }
+
+    @Test
+    void testNaoSolicitaPetJaAdotado() throws Exception {
+        Pet rex = criarPet("Rex");
+        enviarSolicitacao("usuario@petshop.com", rex);
+        Long id = solicitacaoRepository.findAll().get(0).getId();
+        mockMvc.perform(get("/adocao/aprovar/" + id).with(user("admin@petshop.com").authorities(new SimpleGrantedAuthority("Admin"))));
+
+        // Outro usuário tenta pedir o mesmo pet: volta para o formulário com erro
         mockMvc.perform(post("/adocao/salvar")
+                .with(user("outro@petshop.com").authorities(new SimpleGrantedAuthority("Usuario")))
                 .with(csrf())
+                .param("pet.id", rex.getId().toString())
                 .param("nomeAdotante", "Bruno Alves")
-                .param("itens[0].pet.id", rex.getId().toString())
-                .param("itens[0].taxaAdocao", "50.00"))
+                .param("telefone", "(34) 98888-0000"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("adocao/form"))
                 .andExpect(model().hasErrors());
@@ -101,37 +118,34 @@ public class SolicitacaoAdocaoIntegrationTest {
     }
 
     @Test
-    @WithMockUser(authorities = { "Admin" })
     void testTelasDeAdocaoAbrem() throws Exception {
         Pet rex = criarPet("Rex");
 
-        // Formulário de nova solicitação lista os pets no select
-        mockMvc.perform(get("/adocao/nova"))
+        // Formulário do usuário padrão lista o pet disponível
+        mockMvc.perform(get("/adocao/nova").with(user("usuario@petshop.com").authorities(new SimpleGrantedAuthority("Usuario"))))
                 .andExpect(status().isOk())
                 .andExpect(view().name("adocao/form"))
-                .andExpect(content().string(containsString("Nova solicitação de adoção")))
-                .andExpect(content().string(containsString("Rex (Cachorro)")));
+                .andExpect(content().string(containsString("Solicitar adoção")))
+                .andExpect(content().string(containsString("Rex (Cachorro")));
 
-        mockMvc.perform(post("/adocao/salvar")
-                .with(csrf())
-                .param("nomeAdotante", "Carla Mendes")
-                .param("itens[0].pet.id", rex.getId().toString())
-                .param("itens[0].taxaAdocao", "50.00"))
-                .andExpect(status().is3xxRedirection());
+        enviarSolicitacao("usuario@petshop.com", rex);
 
-        // Lista mostra a solicitação com o nome do pet e a taxa formatada
-        mockMvc.perform(get("/adocao"))
+        // Admin vê a solicitação com o botão Aprovar
+        mockMvc.perform(get("/adocao").with(user("admin@petshop.com").authorities(new SimpleGrantedAuthority("Admin"))))
                 .andExpect(status().isOk())
-                .andExpect(view().name("adocao/index"))
                 .andExpect(content().string(containsString("Carla Mendes")))
-                .andExpect(content().string(containsString("Rex")))
-                .andExpect(content().string(containsString("R$ 50,00")));
+                .andExpect(content().string(containsString("Aprovar")));
 
-        // Tela de edição abre com o item já preenchido
-        Long id = solicitacaoRepository.findAll().get(0).getId();
-        mockMvc.perform(get("/adocao/editar/" + id))
+        // Atendente vê a solicitação, mas sem o botão Aprovar
+        mockMvc.perform(get("/adocao").with(user("atendente@petshop.com").authorities(new SimpleGrantedAuthority("Atendente"))))
                 .andExpect(status().isOk())
-                .andExpect(view().name("adocao/form"))
-                .andExpect(content().string(containsString("Editar solicitação #" + id)));
+                .andExpect(content().string(containsString("Carla Mendes")))
+                .andExpect(content().string(not(containsString(">Aprovar<"))));
+
+        // Usuário padrão vê "Minhas solicitações"
+        mockMvc.perform(get("/adocao").with(user("usuario@petshop.com").authorities(new SimpleGrantedAuthority("Usuario"))))
+                .andExpect(status().isOk())
+                .andExpect(content().string(containsString("Minhas solicitações")))
+                .andExpect(content().string(containsString("Pendente")));
     }
 }

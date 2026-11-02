@@ -1,55 +1,51 @@
 package com.petshop.petshop.model;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
 
-import org.springframework.format.annotation.DateTimeFormat;
-
-import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
-import jakarta.persistence.OneToMany;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 
 import lombok.Data;
 
-// Equivalente ao Order (pedido) do professor: uma solicitação tem vários itens (pets)
+// Equivalente ao pedido do professor: o usuário escolhe um pet e envia os seus dados
 @Data
 @Entity
-@Table(name = "solicitacoes_adocao")
+@Table(name = "adocoes")
 public class SolicitacaoAdocao {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @DateTimeFormat(pattern = "yyyy-MM-dd'T'HH:mm")
     private LocalDateTime dataSolicitacao = LocalDateTime.now();
 
+    // Muitas solicitações podem apontar para o mesmo pet (coluna pet_id)
+    @NotNull(message = "Escolha um pet")
+    @ManyToOne
+    @JoinColumn(name = "pet_id")
+    private Pet pet;
+
+    @NotBlank(message = "Informe o seu nome")
+    @Size(min = 3, max = 80, message = "O nome deve ter pelo menos 3 caracteres")
     private String nomeAdotante;
 
-    private String telefoneAdotante;
+    @NotBlank(message = "Informe um telefone para contato")
+    private String telefone;
 
-    // mappedBy: quem guarda a chave estrangeira é o ItemSolicitacao (coluna solicitacao_id)
-    // cascade ALL: salvar/excluir a solicitação salva/exclui os itens junto
-    // orphanRemoval: item removido da lista é apagado do banco
-    @OneToMany(mappedBy = "solicitacao", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<ItemSolicitacao> itens = new ArrayList<>();
+    // Email do usuário logado que enviou (preenchido pelo controller, não pelo formulário)
+    private String emailUsuario;
 
-    private Float taxaTotal = 0.0f;
-
-    public void addItem(ItemSolicitacao item) {
-        itens.add(item);
-        item.setSolicitacao(this);
-    }
-
-    // Soma a taxa de adoção de cada pet (equivalente ao calculateTotal do pedido)
-    public void calcularTotal() {
-        this.taxaTotal = (float) itens.stream()
-                .mapToDouble(i -> i.getTaxaAdocao() == null ? 0 : i.getTaxaAdocao())
-                .sum();
-    }
+    // Guarda o texto do enum no banco (PENDENTE / APROVADA) em vez de um número
+    @Enumerated(EnumType.STRING)
+    private StatusSolicitacao status = StatusSolicitacao.PENDENTE;
 }

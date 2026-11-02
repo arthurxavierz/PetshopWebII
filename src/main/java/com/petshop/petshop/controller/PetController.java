@@ -1,6 +1,7 @@
 package com.petshop.petshop.controller;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -73,7 +74,7 @@ public class PetController {
     public String excluir(@PathVariable Long id) {
         try {
             petService.deletePet(id);
-        } catch (IllegalStateException e) {
+        } catch (IllegalStateException | DataIntegrityViolationException e) {
             // Pet em solicitação de adoção: volta para a lista com aviso
             return "redirect:/pet?erroExclusao";
         }

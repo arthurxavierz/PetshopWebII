@@ -5,43 +5,47 @@
     <th:block th:replace="~{/../fragments/head :: header}"></th:block>
     <div class="container mt-4">
       <div class="d-flex justify-content-between align-items-center mb-3">
-        <h1>Solicitações de adoção</h1>
-        <a th:href="@{/adocao/nova}" class="btn btn-primary">Nova solicitação</a>
+        <h1 sec:authorize="hasAnyAuthority('Admin', 'Atendente')">Solicitações de adoção</h1>
+        <h1 sec:authorize="!hasAnyAuthority('Admin', 'Atendente')">Minhas solicitações</h1>
+        <a sec:authorize="hasAuthority('Usuario')" th:href="@{/adocao/nova}" class="btn btn-primary">Solicitar adoção</a>
       </div>
+
+      <div th:if="${param.erroAprovacao}" class="alert alert-warning">Este pet já foi adotado em outra solicitação.</div>
 
       <table class="table table-striped">
         <thead>
           <tr>
             <th>ID</th>
             <th>Data</th>
+            <th>Pet</th>
             <th>Adotante</th>
             <th>Telefone</th>
-            <th>Pets</th>
-            <th>Taxa total</th>
-            <th>Editar</th>
-            <th sec:authorize="hasAuthority('Admin')">Excluir</th>
+            <th>Email</th>
+            <th>Status</th>
+            <th sec:authorize="hasAuthority('Admin')">Ação</th>
           </tr>
         </thead>
         <tbody>
           <tr th:if="${solicitacoes.isEmpty()}">
-            <td colspan="8" class="text-center">Nenhuma solicitação de adoção cadastrada.</td>
+            <td colspan="8" class="text-center">Nenhuma solicitação de adoção.</td>
           </tr>
           <tr th:each="s : ${solicitacoes}">
             <td th:text="${s.id}"></td>
             <td th:text="${#temporals.format(s.dataSolicitacao, 'dd/MM/yyyy HH:mm')}"></td>
+            <td th:text="${s.pet.nome}"></td>
             <td th:text="${s.nomeAdotante}"></td>
-            <td th:text="${s.telefoneAdotante}"></td>
-            <td th:text="${#strings.listJoin(s.itens.![pet.nome], ', ')}"></td>
-            <td th:text="${'R$ ' + #numbers.formatDecimal(s.taxaTotal, 1, 'POINT', 2, 'COMMA')}"></td>
+            <td th:text="${s.telefone}"></td>
+            <td th:text="${s.emailUsuario}"></td>
             <td>
-              <a th:href="@{/adocao/editar/{id}(id=${s.id})}" class="btn btn-primary btn-sm">Editar</a>
+              <span th:if="${s.status.name() == 'PENDENTE'}" class="badge badge-warning">Pendente</span>
+              <span th:if="${s.status.name() == 'APROVADA'}" class="badge badge-success">Aprovada</span>
             </td>
             <td sec:authorize="hasAuthority('Admin')">
               <a
-                th:href="@{/adocao/excluir/{id}(id=${s.id})}"
-                class="btn btn-danger btn-sm"
-                onclick="return confirm('Deseja realmente excluir esta solicitação de adoção?');"
-                >Excluir</a
+                th:if="${s.status.name() == 'PENDENTE'}"
+                th:href="@{/adocao/aprovar/{id}(id=${s.id})}"
+                class="btn btn-success btn-sm"
+                >Aprovar</a
               >
             </td>
           </tr>

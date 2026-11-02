@@ -4,6 +4,7 @@ import java.net.URI;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.BindingResult;
@@ -107,7 +108,7 @@ public class PetRestController {
 
         try {
             petService.deletePet(id);
-        } catch (IllegalStateException e) {
+        } catch (IllegalStateException | DataIntegrityViolationException e) {
             // 409 Conflict: o pet está em uma solicitação de adoção
             return ResponseEntity.status(HttpStatus.CONFLICT).build();
         }

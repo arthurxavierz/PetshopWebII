@@ -1,7 +1,9 @@
 package com.petshop.petshop.controller;
 
+import java.security.Principal;
+
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.HttpStatus;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -11,11 +13,13 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.server.ResponseStatusException;
+import org.springframework.web.bind.annotation.RequestParam;
 
+import com.petshop.petshop.model.Pet;
 import com.petshop.petshop.model.SolicitacaoAdocao;
-import com.petshop.petshop.service.PetService;
 import com.petshop.petshop.service.SolicitacaoAdocaoService;
+
+import jakarta.validation.Valid;
 
 @Controller
 @RequestMapping("/adocao")
@@ -24,50 +28,61 @@ public class SolicitacaoAdocaoController {
     @Autowired
     private SolicitacaoAdocaoService solicitacaoService;
 
-    @Autowired
-    private PetService petService;
-
-    // Lista de solicitações
+    // Admin e Atendente veem todas; o usuário padrão vê só as dele ("Minhas solicitações")
     @GetMapping
-    public String index(Model model) {
-        model.addAttribute("solicitacoes", solicitacaoService.getAllSolicitacoes());
+    public String index(Model model, Authentication authentication) {
+        boolean veTodas = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equals("Admin") || a.getAuthority().equals("Atendente"));
+
+        if (veTodas) {
+            model.addAttribute("solicitacoes", solicitacaoService.getAllSolicitacoes());
+        } else {
+            model.addAttribute("solicitacoes", solicitacaoService.getSolicitacoesDoUsuario(authentication.getName()));
+        }
         return "adocao/index";
     }
 
-    // Formulário de nova solicitação (a lista de pets alimenta o select de cada item)
+    // Formulário do usuário padrão; petId vem do botão "Solicitar adoção" da lista de pets
     @GetMapping("/nova")
-    public String nova(Model model) {
-        model.addAttribute("solicitacao", new SolicitacaoAdocao());
-        model.addAttribute("pets", petService.getAllPets());
-        return "adocao/form";
-    }
+    public String nova(@RequestParam(required = false) Long petId, Model model) {
+        SolicitacaoAdocao solicitacao = new SolicitacaoAdocao();
+        Pet pet = new Pet();
+        pet.setId(petId);
+        solicitacao.setPet(pet);
 
-    // Salva nova ou editada; se uma regra de negócio falhar, volta para o form com a mensagem
-    @PostMapping("/salvar")
-    public String salvar(@ModelAttribute("solicitacao") SolicitacaoAdocao solicitacao, BindingResult bindingResult,
-            Model model) {
-        try {
-            solicitacaoService.saveSolicitacao(solicitacao);
-        } catch (IllegalStateException e) {
-            bindingResult.addError(new ObjectError("solicitacao", e.getMessage()));
-            model.addAttribute("pets", petService.getAllPets());
-            return "adocao/form";
-        }
-        return "redirect:/adocao";
-    }
-
-    @GetMapping("/editar/{id}")
-    public String editar(@PathVariable Long id, Model model) {
-        SolicitacaoAdocao solicitacao = solicitacaoService.getSolicitacaoById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Solicitação não encontrada"));
         model.addAttribute("solicitacao", solicitacao);
-        model.addAttribute("pets", petService.getAllPets());
+        model.addAttribute("pets", solicitacaoService.getPetsDisponiveis());
         return "adocao/form";
     }
 
-    @GetMapping("/excluir/{id}")
-    public String excluir(@PathVariable Long id) {
-        solicitacaoService.deleteSolicitacaoById(id);
+    @PostMapping("/salvar")
+    public String salvar(@Valid @ModelAttribute("solicitacao") SolicitacaoAdocao solicitacao, BindingResult result,
+            Principal principal, Model model) {
+
+        // Quem enviou é o usuário logado (não vem do formulário)
+        solicitacao.setEmailUsuario(principal.getName());
+
+        if (!result.hasErrors()) {
+            try {
+                solicitacaoService.enviarSolicitacao(solicitacao);
+                return "redirect:/adocao";
+            } catch (IllegalStateException e) {
+                result.addError(new ObjectError("solicitacao", e.getMessage()));
+            }
+        }
+
+        model.addAttribute("pets", solicitacaoService.getPetsDisponiveis());
+        return "adocao/form";
+    }
+
+    // Só o Admin chega aqui (regra no SecurityConfig)
+    @GetMapping("/aprovar/{id}")
+    public String aprovar(@PathVariable Long id) {
+        try {
+            solicitacaoService.aprovarSolicitacao(id);
+        } catch (IllegalStateException e) {
+            return "redirect:/adocao?erroAprovacao";
+        }
         return "redirect:/adocao";
     }
 }

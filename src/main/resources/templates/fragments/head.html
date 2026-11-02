@@ -76,8 +76,9 @@
             Adoções
           </a>
           <div class="dropdown-menu" aria-labelledby="navbarDropdownAdocao">
-            <a class="dropdown-item" th:href="@{/adocao}">Listar</a>
-            <a class="dropdown-item" th:href="@{/adocao/nova}">Nova solicitação</a>
+            <a sec:authorize="hasAuthority('Usuario')" class="dropdown-item" th:href="@{/adocao/nova}">Solicitar adoção</a>
+            <a sec:authorize="!hasAnyAuthority('Admin', 'Atendente')" class="dropdown-item" th:href="@{/adocao}">Minhas solicitações</a>
+            <a sec:authorize="hasAnyAuthority('Admin', 'Atendente')" class="dropdown-item" th:href="@{/adocao}">Ver solicitações</a>
           </div>
         </li>
       </ul>

@@ -19,6 +19,7 @@
             <th scope="col">Tutor</th>
             <th sec:authorize="hasAuthority('Admin')" scope="col">Editar</th>
             <th sec:authorize="hasAuthority('Admin')" scope="col">Excluir</th>
+            <th sec:authorize="hasAuthority('Usuario')" scope="col">Adoção</th>
           </tr>
         </thead>
         <tbody>
@@ -38,6 +39,9 @@
                 onclick="return confirm('Deseja realmente excluir este pet?')"
                 >Excluir</a
               >
+            </td>
+            <td sec:authorize="hasAuthority('Usuario')">
+              <a th:href="@{/adocao/nova(petId=${pet.id})}" class="btn btn-success btn-sm">Solicitar adoção</a>
             </td>
           </tr>
         </tbody>
