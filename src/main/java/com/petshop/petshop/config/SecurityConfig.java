@@ -22,6 +22,8 @@ public class SecurityConfig {
 
         http.authorizeHttpRequests(requests -> requests
                 .requestMatchers("/register", "/saveUser", "/css/**", "/error").permitAll()
+                // Documentação da API (Swagger) liberada para abrir sem login
+                .requestMatchers("/swagger-ui/**", "/swagger-ui.html", "/v3/api-docs/**").permitAll()
                 // Apenas Admin pode cadastrar, editar e excluir pets (listar fica liberado para qualquer usuário logado)
                 .requestMatchers("/pet/novo", "/pet/salvar", "/pet/editar/**", "/pet/atualizar/**", "/pet/excluir/**")
                 .hasAuthority("Admin")
