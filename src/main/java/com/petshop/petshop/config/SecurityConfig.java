@@ -2,6 +2,8 @@ package com.petshop.petshop.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.core.annotation.Order;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -16,8 +18,34 @@ import org.springframework.security.web.SecurityFilterChain;
 @Configuration
 public class SecurityConfig {
 
+    // Cadeia 1: só para a API (/api/**). @Order(1) faz ela ser verificada primeiro.
+    // Usa HTTP Basic (email e senha em cada requisição) e não usa CSRF.
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http, AuthenticationProvider authenticationProvider)
+    @Order(1)
+    public SecurityFilterChain apiFilterChain(HttpSecurity http, AuthenticationProvider authenticationProvider)
+            throws Exception {
+        http
+                .securityMatcher("/api/**")
+                .authorizeHttpRequests(auth -> auth
+                        .requestMatchers("/api/public/**").permitAll()
+                        // Mesma regra das telas: só o Admin cria, altera e exclui pets
+                        .requestMatchers(HttpMethod.POST, "/api/pets/**").hasAuthority("Admin")
+                        .requestMatchers(HttpMethod.PUT, "/api/pets/**").hasAuthority("Admin")
+                        .requestMatchers(HttpMethod.DELETE, "/api/pets/**").hasAuthority("Admin")
+                        .anyRequest().authenticated())
+                // CSRF protege formulários com sessão; a API usa HTTP Basic, então fica desligado aqui
+                .csrf(csrf -> csrf.disable())
+                .httpBasic(basic -> {
+                })
+                .authenticationProvider(authenticationProvider);
+
+        return http.build();
+    }
+
+    // Cadeia 2: o resto do sistema (telas). Login por formulário, como antes.
+    @Bean
+    @Order(2)
+    public SecurityFilterChain webFilterChain(HttpSecurity http, AuthenticationProvider authenticationProvider)
             throws Exception {
 
         http.authorizeHttpRequests(requests -> requests
